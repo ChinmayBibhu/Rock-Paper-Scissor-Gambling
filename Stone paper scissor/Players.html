@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Players</title>
+    <style>
+        body{
+            background-color: black;
+            text-align: center;
+            font-family: Arial, Helvetica, sans-serif ;
+        }
+        .container{
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 100px;
+            gap: 50px;
+        }
+
+        .player{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        img{
+            width: 150px;
+            height: auto;
+        }
+        input{
+            width: 150px;
+            padding: 5px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        .start-btn{
+    position: absolute;
+    bottom: 50px;
+    left: 670px;
+    
+    font-size: 40px;
+    padding: 20px 50px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00);
+    color:white;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    animation: glow 1.5s infinite alternate;
+    transition: transform 0.2s ease-in-out;
+}
+@keyframes glow{
+    0%{
+        box-shadow: 0 0 20px rgba(255,0 , 0, 0.8), 0 0 40px rgba(255, 165, 0, 0.8);
+    }
+    100%{
+        box-shadow: 0 0 30px rgba(255, 255, 0, 1), 0 0 60px rgba(255, 0, 0, 1);
+    }
+}
+
+.start-btn:hover{
+    transform: scale(1.1);
+}
+    </style>
+</head>
+<body>
+    <h1 style="color: gold;">Choose your player</h1>
+    <div class="container">
+        <div class="player">
+            <p style="color: aqua;">Rock</p>
+            <img src="images/rock.gif" alt="rock">
+            <input type="text" placeholder="Enter name" id="rockName">
+        </div>
+        <div class="player">
+            <p style="color: aqua;">Paper</p>
+            <img src="images/paper.gif" alt="paper">
+            <input type="text" placeholder="Enter name" id="paperName">
+        </div>
+        <div class="player">
+            <p style="color: aqua;">Scissor</p>
+            <img src="images/scissor.gif" alt="scissor">
+            <input type="text" placeholder="Enter name" id="scissorName">
+        </div>
+    </div>
+    <button class="start-btn" id="start">Next</button></div>
+    <script>
+        document.getElementById('start').addEventListener('click', function(){
+            const rockName= document.getElementById('rockName').value || 'Rock' ;
+            const paperName= document.getElementById('paperName').value || 'Paper' ;
+            const scissorName= document.getElementById('scissorName').value || 'Scissor' ;
+
+            localStorage.setItem('rockName', rockName);
+            localStorage.setItem('paperName', paperName);
+            localStorage.setItem('scissorName', scissorName);
+
+            window.location.href= 'game.html';
+
+
+        })
+    </script>
+</body>
+</html>

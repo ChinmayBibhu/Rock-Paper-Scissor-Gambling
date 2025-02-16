@@ -1,0 +1,271 @@
+<!DOCTYPE html> 
+<html lang="en"> 
+<head> 
+<meta charset="UTF-8" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>RPS Evolution Arena</title> 
+<style> 
+body { 
+  background-color: #1a1a1a; 
+  position: relative; 
+  overflow: hidden; 
+  height: 100vh; 
+  margin: 0; 
+} 
+ 
+#countdown { 
+  position: absolute; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  font-size: 100px; 
+  color: #ffffff; 
+  font-weight: bold; 
+  cursor: pointer; 
+  user-select: none; 
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+} 
+ 
+#game-over { 
+  display: none; 
+  position: absolute; 
+  top: 50%; 
+  left: 50%; 
+  transform: translate(-50%, -50%); 
+  font-size: 80px; 
+  color: #ffffff; 
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5); 
+} 
+ 
+.element { 
+  position: absolute; 
+  font-size: 60px; 
+  user-select: none; 
+  transition: all 0.3s ease; 
+} 
+</style> 
+</head> 
+<body> 
+    <div id="countdown">START</div> 
+    <div id="game-over"></div> 
+    <script> 
+    const CONFIG = { 
+      initialCount: 20, 
+      speed: { min: 2, max: 4 }, 
+      collisionRadius: 40, 
+      angles: { 
+        scissors: { base: Math.PI/4, variance: Math.PI/2 },    // 45° ± 90° 
+        rocks: { base: 3*Math.PI/4, variance: Math.PI/2 },     // 135° ± 90° 
+        papers: { base: -Math.PI/2, variance: Math.PI }        // Upward ± 180° 
+      }, 
+      colors: { 
+        scissors: "#FF6B6B", 
+        rocks: "#4ECDC4", 
+        papers: "#FFE66D" 
+      } 
+    }; 
+     
+    let gameState = { 
+      elements: new Set(), 
+      running: false, 
+      countdownValue: 3 
+    }; 
+     
+    function createElement(type, x, y) { 
+      const element = document.createElement("div"); 
+      element.className = "element"; 
+      element.textContent = { 
+        scissors: "✂️", 
+        rocks: "🪨", 
+        papers: "📜" 
+      }[type]; 
+      element.style.color = CONFIG.colors[type]; 
+      element.style.fontSize= 50;
+      element.style.left = `${x}px`; 
+      element.style.top = `${y}px`; 
+      document.body.appendChild(element); 
+     
+      const angleConfig = CONFIG.angles[type]; 
+      const angle = angleConfig.base + (Math.random() - 0.5) * angleConfig.variance; 
+      const speed = CONFIG.speed.min + Math.random() * (CONFIG.speed.max - 
+    CONFIG.speed.min); 
+     
+      return { 
+        element, 
+        type, 
+        x, 
+        y, 
+        dx: Math.cos(angle) * speed, 
+        dy: Math.sin(angle) * speed, 
+        width: 60, 
+        height: 60, 
+        lastConversion: 0 
+      }; 
+    } 
+     
+    function startCountdown() { 
+      const countdownElement = document.getElementById("countdown"); 
+      countdownElement.textContent = gameState.countdownValue; 
+      countdownElement.style.display = "block"; 
+       
+      const timer = setInterval(() => { 
+        gameState.countdownValue--; 
+        countdownElement.textContent = gameState.countdownValue; 
+         
+        if(gameState.countdownValue <= 0) { 
+          clearInterval(timer); 
+          countdownElement.style.display = "none"; 
+          initializeGame(); 
+        } 
+      }, 1000); 
+    } 
+     
+    function initializeGame() { 
+      gameState.elements.forEach(e => e.element.remove()); 
+      gameState.elements.clear(); 
+      document.getElementById("game-over").style.display = "none"; 
+     
+      const spawns = { 
+        scissors: { x: 0, y: 0 }, 
+        rocks: { x: window.innerWidth - 60, y: 0 }, 
+        papers: { x: window.innerWidth/2 - 30, y: window.innerHeight - 60 } 
+      }; 
+     
+      for(let i = 0; i < CONFIG.initialCount; i++) { 
+        Object.entries(spawns).forEach(([type, pos]) => { 
+          const element = createElement(type, pos.x, pos.y); 
+          gameState.elements.add(element); 
+        }); 
+      } 
+     
+      gameState.running = true; 
+      gameLoop(); 
+    } 
+     
+    function handleCollisions() { 
+      const elements = Array.from(gameState.elements); 
+      const now = Date.now(); 
+       
+      for(let i = 0; i < elements.length; i++) { 
+        const a = elements[i]; 
+        for(let j = i + 1; j < elements.length; j++) { 
+          const b = elements[j]; 
+          if(a.type === b.type) continue; 
+          if(now - a.lastConversion < 500 || now - b.lastConversion < 500) continue; 
+     
+          const dx = a.x - b.x; 
+          const dy = a.y - b.y; 
+          const distance = Math.sqrt(dx*dx + dy*dy); 
+           
+          if(distance < CONFIG.collisionRadius) { 
+            const winner = determineWinner(a, b); 
+            const loser = winner === a ? b : a; 
+             
+            if(convertElement(loser, winner.type)) { 
+              loser.lastConversion = now; 
+              winner.lastConversion = now; 
+            } 
+          } 
+        } 
+      } 
+    } 
+     
+    function determineWinner(a, b) { 
+      const rules = { 
+        'rocks': { beats: 'scissors', losesTo: 'papers' }, 
+        'scissors': { beats: 'papers', losesTo: 'rocks' }, 
+        'papers': { beats: 'rocks', losesTo: 'scissors' } 
+      }; 
+     
+      if(rules[a.type].beats === b.type) return a; 
+      if(rules[b.type].beats === a.type) return b; 
+      return Math.random() > 0.5 ? a : b; // Random conversion for non-RPS collisions 
+    } 
+     
+    function convertElement(element, newType) { 
+      if(element.type === newType) return false; 
+       
+      element.type = newType; 
+      element.element.textContent = { 
+        scissors: "✂️", 
+        rocks: "🪨", 
+        papers: "📜" 
+      }[newType]; 
+      element.element.style.color = CONFIG.colors[newType]; 
+     
+      // Randomize movement after conversion 
+      const angleConfig = CONFIG.angles[newType]; 
+      const angle = angleConfig.base + (Math.random() - 0.5) * angleConfig.variance; 
+      const speed = CONFIG.speed.min + Math.random() * (CONFIG.speed.max - 
+    CONFIG.speed.min); 
+       
+      element.dx = Math.cos(angle) * speed; 
+      element.dy = Math.sin(angle) * speed; 
+       
+      return true; 
+    } 
+     
+    function gameLoop() { 
+      if(!gameState.running) return; 
+     
+      const width = window.innerWidth; 
+      const height = window.innerHeight; 
+     
+      gameState.elements.forEach(element => { 
+        // Update position 
+        element.x += element.dx; 
+        element.y += element.dy; 
+     
+        // Boundary checks with momentum preservation 
+        if(element.x <= 0) { 
+          element.x = 0; 
+          element.dx = Math.abs(element.dx) * 0.95; 
+        } else if(element.x + element.width >= width) { 
+          element.x = width - element.width; 
+          element.dx = -Math.abs(element.dx) * 0.95; 
+        } 
+     
+        if(element.y <= 0) { 
+          element.y = 0; 
+          element.dy = Math.abs(element.dy) * 0.95; 
+        } else if(element.y + element.height >= height) { 
+          element.y = height - element.height; 
+          element.dy = -Math.abs(element.dy) * 0.95; 
+        } 
+     
+        element.element.style.left = `${element.x}px`; 
+        element.element.style.top = `${element.y}px`; 
+      }); 
+     
+      handleCollisions(); 
+     
+      // Check win condition 
+      const typeCounts = new Map(); 
+      gameState.elements.forEach(e => { 
+        typeCounts.set(e.type, (typeCounts.get(e.type) || 0) + 1); 
+      }); 
+     
+      const remaining = Array.from(typeCounts.keys()); 
+      if(remaining.length === 1) { 
+        gameState.running = false; 
+        const winnerType = remaining[0];
+        const elementKey = winnerType.slice(0, -1)+ 'Name';
+        const winnerName= localStorage.getItem(elementKey || winnerType);
+        const gameOverElement= document.getElementById("game-over");
+        gameOverElement.textContent = `${winnerName} wins!`;
+        gameOverElement.style.display="block";
+      } else { 
+        requestAnimationFrame(gameLoop); 
+      } 
+    } 
+     
+    document.getElementById("countdown").addEventListener("click", () => { 
+    gameState.countdownValue = 3; 
+    startCountdown(); 
+    }); 
+    window.addEventListener("resize", () => { 
+    if(gameState.running) initializeGame(); 
+    }); 
+    </script>
+</body> 
+</html> 

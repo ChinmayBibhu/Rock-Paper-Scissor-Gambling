@@ -1,0 +1,63 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+body {
+    background-image: url(images/bg.jpeg);
+    background-size: 100% 100%;
+    background-position: center;
+    background-repeat: no-repeat;
+    height: 100vh;
+    width: 100vh;
+    
+}
+
+.title{
+    position: relative;
+    height: 100vh;
+    text-align: center;
+}
+
+.title h1{
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%);
+    margin: 0;
+    padding-top: 10px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 40px;
+    color: gold;
+    text-shadow: 3px 3px 5px black;
+    letter-spacing: 2px;
+    
+}
+
+.start-btn{
+    position: absolute;
+    bottom: 50px;
+    left: 670px;
+    
+    font-size: 40px;
+    padding: 20px 50px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #ff0000, #ff7300, #fffb00);
+    color:white;
+    font-weight: bold;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.8);
+    animation: glow 1.5s infinite alternate;
+    transition: transform 0.2s ease-in-out;
+}
+@keyframes glow{
+    0%{
+        box-shadow: 0 0 20px rgba(255,0 , 0, 0.8), 0 0 40px rgba(255, 165, 0, 0.8);
+    }
+    100%{
+        box-shadow: 0 0 30px rgba(255, 255, 0, 1), 0 0 60px rgba(255, 0, 0, 1);
+    }
+}
+
+.start-btn:hover{
+    transform: scale(1.1);
+}
